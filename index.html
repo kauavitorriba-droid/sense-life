@@ -1,357 +1,328 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Gestão de Projetos & Rotinas</title>
+  <title>Central de Organização Pessoal</title>
   <style>
     :root {
-      --primary: #2563eb;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
+      --primary: #3b82f6;
+      --primary-dark: #1d4ed8;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #94a3b8;
+      --text: #1e293b;
       --border: #e2e8f0;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 24px 16px; max-width: 900px; margin: 0 auto; }
-    
-    header { text-align: center; margin-bottom: 24px; }
-    header h1 { font-size: 1.8rem; margin-bottom: 6px; }
-    header p { color: var(--text-muted); font-size: 0.95rem; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { display: flex; height: 100vh; background: var(--bg-main); color: var(--text); overflow: hidden; }
 
-    /* Painel de Métricas */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .stat-card { background: var(--card-bg); padding: 16px; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
-    .stat-card h4 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    /* Layout Sidebar */
+    aside { width: 240px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 20px 0; }
+    aside h2 { font-size: 1.1rem; padding: 0 20px 20px; border-bottom: 1px solid #334155; color: #f8fafc; }
+    .nav-btn { background: none; border: none; color: var(--sidebar-text); padding: 14px 20px; text-align: left; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+    .nav-btn:hover, .nav-btn.active { background: #1e293b; color: white; border-left: 4px solid var(--primary); }
 
-    /* Controles e Busca */
-    .top-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-    .search-box { flex: 1; min-width: 220px; }
-    .search-box input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
+    /* Conteúdo Principal */
+    main { flex: 1; overflow-y: auto; padding: 32px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
     
-    .btn { padding: 10px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
-    .btn:hover { opacity: 0.9; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-secondary { background: #e2e8f0; color: #334155; }
-    .btn-danger { background: #ef4444; color: white; }
+    .header-title { margin-bottom: 24px; }
+    .header-title h1 { font-size: 1.6rem; color: var(--text); }
 
-    /* Filtros */
-    .filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .filter-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: 500; color: var(--text-muted); }
-    .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    /* Forms e Inputs */
+    .card { background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    input, select, textarea, button { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
+    textarea { width: 100%; min-height: 80px; resize: vertical; }
+    .btn { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: var(--primary-dark); }
+    .btn-danger { background: #ef4444; }
 
-    /* Lista de Cards */
-    .cards-container { display: flex; flex-direction: column; gap: 12px; }
-    .item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow 0.2s; }
-    .item-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-    .card-title { font-size: 1.1rem; font-weight: 600; color: var(--text); }
-    .card-title.concluido { text-decoration: line-through; color: var(--text-muted); }
-    
-    .card-description { font-size: 0.9rem; color: #475569; background: #f1f5f9; padding: 10px; border-radius: 6px; white-space: pre-wrap; margin-top: 4px; }
-    
-    .badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-    .badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase; }
-    
-    /* Cores das Badges */
-    .badge-rotina { background: #e0f2fe; color: #0369a1; }
-    .badge-projeto { background: #fef3c7; color: #b45309; }
-    
-    .badge-a_fazer { background: #f1f5f9; color: #475569; }
-    .badge-em_andamento { background: #dbeafe; color: #1e40af; }
-    .badge-concluido { background: #dcfce7; color: #166534; }
+    /* Módulo Horários */
+    .schedule-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+    .schedule-table th, .schedule-table td { border: 1px solid var(--border); padding: 12px; text-align: center; font-size: 13px; }
+    .schedule-table th { background: #f1f5f9; font-weight: 600; }
 
-    .badge-alta { background: #fee2e2; color: #991b1b; }
-    .badge-media { background: #ffedd5; color: #9a3412; }
-    .badge-baixa { background: #f0fdf4; color: #166534; }
+    /* Módulo Projetos / Pastas */
+    .project-card { border-left: 4px solid var(--primary); margin-bottom: 16px; }
+    .project-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 8px; }
+    .sub-list { margin-top: 10px; padding-left: 16px; font-size: 13px; }
 
-    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; pt-2; border-top: 1px solid #f1f5f9; }
-    .card-date { font-size: 12px; color: var(--text-muted); }
-    .card-actions { display: flex; gap: 6px; }
-
-    /* Modal / Formulario Flutuante */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
-    .modal-overlay.active { display: flex; }
-    .modal { background: white; border-radius: 12px; width: 100%; max-width: 550px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #334155; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+    /* Módulo Diário */
+    .journal-entry { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px; }
+    .journal-date { font-size: 12px; color: #64748b; font-weight: 600; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Gerenciador de Rotinas e Projetos</h1>
-    <p>Acompanhe o progresso e organize o fluxo do seu dia a dia</p>
-  </header>
+  <aside>
+    <h2>Minha Central</h2>
+    <button class="nav-btn active" onclick="switchTab('projetos', this)">📁 Projetos & Arquivos</button>
+    <button class="nav-btn" onclick="switchTab('horarios', this)">📚 Horário de Aulas</button>
+    <button class="nav-btn" onclick="switchTab('compromissos', this)">📅 Compromissos</button>
+    <button class="nav-btn" onclick="switchTab('diario', this)">📖 Diário Pessoal</button>
+  </aside>
 
-  <!-- Métricas -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <h4>Total</h4>
-      <div class="value" id="statTotal">0</div>
-    </div>
-    <div class="stat-card">
-      <h4>Em Andamento</h4>
-      <div class="value" id="statInProgress" style="color: #2563eb;">0</div>
-    </div>
-    <div class="stat-card">
-      <h4>Concluídos</h4>
-      <div class="value" id="statDone" style="color: #16a34a;">0</div>
-    </div>
-  </div>
-
-  <!-- Barra de Ações -->
-  <div class="top-bar">
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="🔍 Buscar por título ou descrição..." oninput="render()">
-    </div>
-    <button class="btn btn-primary" onclick="openModal()">+ Novo Item</button>
-  </div>
-
-  <!-- Filtros -->
-  <div class="filters">
-    <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
-    <button class="filter-btn" onclick="setFilter('projeto', this)">Projetos</button>
-    <button class="filter-btn" onclick="setFilter('rotina', this)">Rotinas</button>
-    <button class="filter-btn" onclick="setFilter('em_andamento', this)">Em Andamento</button>
-    <button class="filter-btn" onclick="setFilter('concluido', this)">Concluídos</button>
-  </div>
-
-  <!-- Container de Itens -->
-  <div class="cards-container" id="itemsList"></div>
-
-  <!-- Modal de Criação / Edição -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modalTitle">Criar Novo Item</h3>
-        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal()">&times;</button>
+  <main>
+    <!-- MÓDULO 1: PROJETOS E ARQUIVOS -->
+    <section id="projetos" class="tab-content active">
+      <div class="header-title"><h1>Projetos & Pastas de Trabalhos</h1></div>
+      
+      <div class="card">
+        <h3>Criar Novo Projeto / Arquivo</h3>
+        <form onsubmit="addProject(event)" style="margin-top:12px;">
+          <div class="form-row">
+            <input type="text" id="projTitle" placeholder="Nome do Projeto ou Matéria" required>
+            <input type="date" id="projDate">
+          </div>
+          <textarea id="projNotes" placeholder="Anotações do projeto, arquivos de referência ou links..."></textarea>
+          <button type="submit" class="btn" style="margin-top:10px;">Salvar Pasta de Projeto</button>
+        </form>
       </div>
-      <form id="itemForm" onsubmit="saveItem(event)">
-        <input type="hidden" id="itemId">
-        
-        <div class="form-group">
-          <label>Título *</label>
-          <input type="text" id="itemTitle" required placeholder="Ex: Lançar novo site ou Exercícios matinais">
-        </div>
 
-        <div class="form-group">
-          <label>Descrição / Anotações do Projeto</label>
-          <textarea id="itemDescription" placeholder="Detalhe os passos, links ou ideias importantes aqui..."></textarea>
-        </div>
+      <div id="projectsList"></div>
+    </section>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Tipo</label>
-            <select id="itemType">
-              <option value="projeto">Projeto</option>
-              <option value="rotina">Rotina</option>
+    <!-- MÓDULO 2: HORÁRIO DE AULAS -->
+    <section id="horarios" class="tab-content">
+      <div class="header-title"><h1>Horário de Aulas Semanal</h1></div>
+      <div class="card">
+        <form onsubmit="addClass(event)">
+          <div class="form-row">
+            <select id="classDay">
+              <option value="Segunda">Segunda-feira</option>
+              <option value="Terça">Terça-feira</option>
+              <option value="Quarta">Quarta-feira</option>
+              <option value="Quinta">Quinta-feira</option>
+              <option value="Sexta">Sexta-feira</option>
             </select>
+            <input type="text" id="classTime" placeholder="Horário (ex: 08:00 - 09:40)" required>
+            <input type="text" id="className" placeholder="Disciplina / Sala" required>
+            <button type="submit" class="btn">Adicionar Aula</button>
           </div>
-          <div class="form-group">
-            <label>Status de Progresso</label>
-            <select id="itemStatus">
-              <option value="a_fazer">A Fazer</option>
-              <option value="em_andamento">Em Andamento</option>
-              <option value="concluido">Concluído</option>
-            </select>
-          </div>
-        </div>
+        </form>
+      </div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table class="schedule-table">
+          <thead>
+            <tr><th>Dia</th><th>Horário</th><th>Disciplina / Local</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+    </section>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Prioridade</label>
-            <select id="itemPriority">
-              <option value="baixa">Baixa</option>
-              <option value="media" selected>Média</option>
-              <option value="alta">Alta</option>
-            </select>
+    <!-- MÓDULO 3: COMPROMISSOS -->
+    <section id="compromissos" class="tab-content">
+      <div class="header-title"><h1>Agenda & Compromissos</h1></div>
+      <div class="card">
+        <form onsubmit="addEvent(event)">
+          <div class="form-row">
+            <input type="text" id="eventTitle" placeholder="Título da entrega ou evento" required>
+            <input type="date" id="eventDate" required>
+            <button type="submit" class="btn">Agendar</button>
           </div>
-          <div class="form-group">
-            <label>Data Limite / Prazo</label>
-            <input type="date" id="itemDate">
-          </div>
-        </div>
+        </form>
+      </div>
+      <div id="eventsList"></div>
+    </section>
 
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar Item</button>
-        </div>
-      </form>
-    </div>
-  </div>
+    <!-- MÓDULO 4: DIÁRIO -->
+    <section id="diario" class="tab-content">
+      <div class="header-title"><h1>Diário & Reflexões</h1></div>
+      <div class="card">
+        <form onsubmit="addJournalEntry(event)">
+          <textarea id="journalText" placeholder="Como foi seu dia? Escreva suas reflexões e pensamentos..." required></textarea>
+          <button type="submit" class="btn" style="margin-top:10px;">Guardar Registro</button>
+        </form>
+      </div>
+      <div class="card" id="journalList"></div>
+    </section>
+  </main>
 
   <script>
-    let items = JSON.parse(localStorage.getItem('my_planner_v3')) || [];
-    let currentFilter = 'all';
+    // Estado do App (LocalStorage)
+    let appData = JSON.parse(localStorage.getItem('my_complete_organizer')) || {
+      projects: [],
+      classes: [],
+      events: [],
+      diary: []
+    };
 
-    function saveToStorage() {
-      localStorage.setItem('my_planner_v3', JSON.stringify(items));
-      updateStats();
-      render();
+    function saveState() {
+      localStorage.setItem('my_complete_organizer', JSON.stringify(appData));
+      renderAll();
     }
 
-    function updateStats() {
-      document.getElementById('statTotal').innerText = items.length;
-      document.getElementById('statInProgress').innerText = items.filter(i => i.status === 'em_andamento').length;
-      document.getElementById('statDone').innerText = items.filter(i => i.status === 'concluido').length;
-    }
-
-    function setFilter(filter, btn) {
-      currentFilter = filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
-      render();
     }
 
-    function openModal(id = null) {
-      const modal = document.getElementById('modalOverlay');
-      const modalTitle = document.getElementById('modalTitle');
-      
-      if (id) {
-        modalTitle.innerText = "Editar Item / Descrição";
-        const item = items.find(i => i.id === id);
-        document.getElementById('itemId').value = item.id;
-        document.getElementById('itemTitle').value = item.title;
-        document.getElementById('itemDescription').value = item.description || '';
-        document.getElementById('itemType').value = item.type;
-        document.getElementById('itemStatus').value = item.status;
-        document.getElementById('itemPriority').value = item.priority;
-        document.getElementById('itemDate').value = item.date || '';
-      } else {
-        modalTitle.innerText = "Criar Novo Item";
-        document.getElementById('itemForm').reset();
-        document.getElementById('itemId').value = '';
-      }
-      
-      modal.classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('active');
-    }
-
-    function saveItem(e) {
+    /* --- PROJETOS --- */
+    function addProject(e) {
       e.preventDefault();
-      const id = document.getElementById('itemId').value;
-      const title = document.getElementById('itemTitle').value.trim();
-      const description = document.getElementById('itemDescription').value.trim();
-      const type = document.getElementById('itemType').value;
-      const status = document.getElementById('itemStatus').value;
-      const priority = document.getElementById('itemPriority').value;
-      const date = document.getElementById('itemDate').value;
+      const title = document.getElementById('projTitle').value;
+      const date = document.getElementById('projDate').value;
+      const notes = document.getElementById('projNotes').value;
 
-      if (id) {
-        // Editar
-        items = items.map(item => item.id == id ? { ...item, title, description, type, status, priority, date } : item);
-      } else {
-        // Criar Novo
-        items.push({
-          id: Date.now(),
-          title,
-          description,
-          type,
-          status,
-          priority,
-          date
-        });
-      }
-
-      closeModal();
-      saveToStorage();
+      appData.projects.push({ id: Date.now(), title, date, notes, tasks: [] });
+      e.target.reset();
+      saveState();
     }
 
-    function deleteItem(id) {
-      if (confirm("Tem certeza de que deseja excluir este item?")) {
-        items = items.filter(i => i.id !== id);
-        saveToStorage();
+    function addSubTask(projId) {
+      const taskText = prompt("Nova tarefa/etapa do projeto:");
+      if (taskText) {
+        const proj = appData.projects.find(p => p.id === projId);
+        proj.tasks.push({ text: taskText, done: false });
+        saveState();
       }
     }
 
-    function quickToggleStatus(id) {
-      items = items.map(i => {
-        if (i.id === id) {
-          const nextStatus = i.status === 'concluido' ? 'a_fazer' : 'concluido';
-          return { ...i, status: nextStatus };
-        }
-        return i;
-      });
-      saveToStorage();
+    function toggleSubTask(projId, taskIdx) {
+      const proj = appData.projects.find(p => p.id === projId);
+      proj.tasks[taskIdx].done = !proj.tasks[taskIdx].done;
+      saveState();
     }
 
-    function render() {
-      const list = document.getElementById('itemsList');
-      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-      list.innerHTML = '';
+    function deleteProject(id) {
+      appData.projects = appData.projects.filter(p => p.id !== id);
+      saveState();
+    }
 
-      const filteredItems = items.filter(item => {
-        // Filtro por texto
-        const matchesSearch = item.title.toLowerCase().includes(searchQuery) || 
-                              (item.description && item.description.toLowerCase().includes(searchQuery));
-        if (!matchesSearch) return false;
+    /* --- HORÁRIOS DE AULAS --- */
+    function addClass(e) {
+      e.preventDefault();
+      const day = document.getElementById('classDay').value;
+      const time = document.getElementById('classTime').value;
+      const name = document.getElementById('className').value;
 
-        // Filtro por categoria/status
-        if (currentFilter === 'projeto') return item.type === 'projeto';
-        if (currentFilter === 'rotina') return item.type === 'rotina';
-        if (currentFilter === 'em_andamento') return item.status === 'em_andamento';
-        if (currentFilter === 'concluido') return item.status === 'concluido';
-        return true;
-      });
+      appData.classes.push({ id: Date.now(), day, time, name });
+      e.target.reset();
+      saveState();
+    }
 
-      if (filteredItems.length === 0) {
-        list.innerHTML = '<div class="empty-state">Nenhum projeto ou rotina encontrado.</div>';
-        return;
-      }
+    function deleteClass(id) {
+      appData.classes = appData.classes.filter(c => c.id !== id);
+      saveState();
+    }
 
-      filteredItems.forEach(item => {
+    /* --- COMPROMISSOS --- */
+    function addEvent(e) {
+      e.preventDefault();
+      const title = document.getElementById('eventTitle').value;
+      const date = document.getElementById('eventDate').value;
+
+      appData.events.push({ id: Date.now(), title, date });
+      e.target.reset();
+      saveState();
+    }
+
+    function deleteEvent(id) {
+      appData.events = appData.events.filter(ev => ev.id !== id);
+      saveState();
+    }
+
+    /* --- DIÁRIO --- */
+    function addJournalEntry(e) {
+      e.preventDefault();
+      const text = document.getElementById('journalText').value;
+      const date = new Date().toLocaleString('pt-BR');
+
+      appData.diary.unshift({ id: Date.now(), date, text });
+      e.target.reset();
+      saveState();
+    }
+
+    function deleteJournal(id) {
+      appData.diary = appData.diary.filter(d => d.id !== id);
+      saveState();
+    }
+
+    /* --- RENDERIZAÇÃO --- */
+    function renderAll() {
+      // 1. Projetos
+      const projList = document.getElementById('projectsList');
+      projList.innerHTML = '';
+      appData.projects.forEach(p => {
         const card = document.createElement('div');
-        card.className = 'item-card';
-
-        const statusLabels = { a_fazer: 'A Fazer', em_andamento: 'Em Andamento', concluido: 'Concluído' };
-        const formattedDate = item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : '';
-
+        card.className = 'card project-card';
         card.innerHTML = `
-          <div class="card-header">
-            <div>
-              <div class="card-title ${item.status === 'concluido' ? 'concluido' : ''}">${item.title}</div>
-            </div>
-            <input type="checkbox" ${item.status === 'concluido' ? 'checked' : ''} onchange="quickToggleStatus(${item.id})" title="Marcar/Desmarcar como concluído">
+          <div class="project-header">
+            <span>📁 ${p.title}</span>
+            <button class="btn btn-danger" style="padding: 2px 8px; font-size:11px;" onclick="deleteProject(${p.id})">Excluir</button>
           </div>
-
-          <div class="badges">
-            <span class="badge badge-${item.type}">${item.type}</span>
-            <span class="badge badge-${item.status}">${statusLabels[item.status]}</span>
-            <span class="badge badge-${item.priority}">${item.priority}</span>
-          </div>
-
-          ${item.description ? `<div class="card-description">${item.description}</div>` : ''}
-
-          <div class="card-footer">
-            <span class="card-date">${formattedDate ? '📅 Prazo: ' + formattedDate : ''}</span>
-            <div class="card-actions">
-              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openModal(${item.id})">✏️ Editar</button>
-              <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="deleteItem(${item.id})">🗑️ Excluir</button>
-            </div>
-          </div>
+          ${p.date ? `<div style="font-size:12px; color:#64748b; margin-bottom:8px;">📅 Prazo: ${p.date}</div>` : ''}
+          ${p.notes ? `<div style="font-size:13px; background:#f1f5f9; padding:8px; border-radius:4px; margin-bottom:8px;">${p.notes}</div>` : ''}
+          <button class="btn" style="padding: 4px 8px; font-size:12px;" onclick="addSubTask(${p.id})">+ Add Sub-tarefa</button>
+          <ul class="sub-list">
+            ${p.tasks.map((t, idx) => `
+              <li>
+                <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleSubTask(${p.id}, ${idx})">
+                <span style="${t.done ? 'text-decoration:line-through; opacity:0.6;' : ''}">${t.text}</span>
+              </li>
+            `).join('')}
+          </ul>
         `;
-        list.appendChild(card);
+        projList.appendChild(card);
+      });
+
+      // 2. Horários
+      const scheduleBody = document.getElementById('scheduleBody');
+      scheduleBody.innerHTML = '';
+      appData.classes.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${c.day}</td>
+          <td>${c.time}</td>
+          <td>${c.name}</td>
+          <td><button class="btn btn-danger" style="padding: 2px 6px; font-size:11px;" onclick="deleteClass(${c.id})">Remover</button></td>
+        `;
+        scheduleBody.appendChild(tr);
+      });
+
+      // 3. Compromissos
+      const eventsList = document.getElementById('eventsList');
+      eventsList.innerHTML = '';
+      appData.events.forEach(ev => {
+        const item = document.createElement('div');
+        item.className = 'card';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.innerHTML = `
+          <div><strong>${ev.title}</strong> - <span style="color:#64748b;">${ev.date}</span></div>
+          <button class="btn btn-danger" style="padding:2px 6px; font-size:11px;" onclick="deleteEvent(${ev.id})">Excluir</button>
+        `;
+        eventsList.appendChild(item);
+      });
+
+      // 4. Diário
+      const journalList = document.getElementById('journalList');
+      journalList.innerHTML = '';
+      if(appData.diary.length === 0) journalList.innerHTML = '<p style="color:#64748b;">Nenhum registro ainda.</p>';
+      appData.diary.forEach(d => {
+        const entry = document.createElement('div');
+        entry.className = 'journal-entry';
+        entry.innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+            <span class="journal-date">${d.date}</span>
+            <button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deleteJournal(${d.id})">Excluir</button>
+          </div>
+          <p style="margin-top:6px; font-size:14px; white-space:pre-wrap;">${d.text}</p>
+        `;
+        journalList.appendChild(entry);
       });
     }
 
-    // Inicialização
-    updateStats();
-    render();
+    renderAll();
   </script>
 </body>
 </html>
