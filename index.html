@@ -3,112 +3,209 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerenciador de Rotinas e Projetos</title>
+  <title>Painel de Gestão de Projetos & Rotinas</title>
   <style>
-    :root { --primary: #4f46e5; --bg: #f8fafc; --card: #ffffff; --text: #0f172a; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 32px 16px; max-width: 850px; margin: 0 auto; }
-    h1 { margin-bottom: 24px; font-size: 1.75rem; text-align: center; }
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 24px 16px; max-width: 900px; margin: 0 auto; }
     
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: var(--card); padding: 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; }
-    .stat-card h3 { font-size: 0.85rem; color: #64748b; margin-bottom: 6px; }
-    .stat-card p { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-    .progress-bar-bg { background: #e2e8f0; border-radius: 8px; height: 8px; width: 100%; margin-top: 10px; overflow: hidden; }
-    .progress-bar-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.3s; }
+    header { text-align: center; margin-bottom: 24px; }
+    header h1 { font-size: 1.8rem; margin-bottom: 6px; }
+    header p { color: var(--text-muted); font-size: 0.95rem; }
 
-    .card { background: var(--card); padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; }
-    .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 20px; }
-    @media (max-width: 680px) { .form-grid { grid-template-columns: 1fr; } }
+    /* Painel de Métricas */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); padding: 16px; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
+    .stat-card h4 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+
+    /* Controles e Busca */
+    .top-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+    .search-box { flex: 1; min-width: 220px; }
+    .search-box input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
     
-    input, select, button { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-    button.btn-primary { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; }
-    button.btn-primary:hover { opacity: 0.9; }
+    .btn { padding: 10px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-danger { background: #ef4444; color: white; }
 
-    .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-    .filter-btn { background: #f1f5f9; border: none; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: 500; color: #475569; }
-    .filter-btn.active { background: var(--primary); color: white; }
+    /* Filtros */
+    .filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: 500; color: var(--text-muted); }
+    .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-    ul { list-style: none; }
-    li { display: flex; justify-content: space-between; align-items: center; padding: 14px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; background: #fff; }
-    li.done { opacity: 0.55; background: #f8fafc; }
-    li.done .title { text-decoration: line-through; }
-    .task-left { display: flex; align-items: center; gap: 12px; }
-    .meta-tags { display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
-    .badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 700; text-transform: uppercase; }
+    /* Lista de Cards */
+    .cards-container { display: flex; flex-direction: column; gap: 12px; }
+    .item-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: box-shadow 0.2s; }
+    .item-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .card-title { font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    .card-title.concluido { text-decoration: line-through; color: var(--text-muted); }
+    
+    .card-description { font-size: 0.9rem; color: #475569; background: #f1f5f9; padding: 10px; border-radius: 6px; white-space: pre-wrap; margin-top: 4px; }
+    
+    .badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase; }
+    
+    /* Cores das Badges */
     .badge-rotina { background: #e0f2fe; color: #0369a1; }
     .badge-projeto { background: #fef3c7; color: #b45309; }
+    
+    .badge-a_fazer { background: #f1f5f9; color: #475569; }
+    .badge-em_andamento { background: #dbeafe; color: #1e40af; }
+    .badge-concluido { background: #dcfce7; color: #166534; }
+
     .badge-alta { background: #fee2e2; color: #991b1b; }
     .badge-media { background: #ffedd5; color: #9a3412; }
     .badge-baixa { background: #f0fdf4; color: #166534; }
-    .task-date { font-size: 12px; color: #64748b; }
-    .btn-del { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; pt-2; border-top: 1px solid #f1f5f9; }
+    .card-date { font-size: 12px; color: var(--text-muted); }
+    .card-actions { display: flex; gap: 6px; }
+
+    /* Modal / Formulario Flutuante */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 12px; width: 100%; max-width: 550px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #334155; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
   </style>
 </head>
 <body>
-  <h1>Painel Avançado de Rotinas e Projetos</h1>
 
+  <header>
+    <h1>Gerenciador de Rotinas e Projetos</h1>
+    <p>Acompanhe o progresso e organize o fluxo do seu dia a dia</p>
+  </header>
+
+  <!-- Métricas -->
   <div class="stats-grid">
     <div class="stat-card">
-      <h3>Total de Itens</h3>
-      <p id="statTotal">0</p>
+      <h4>Total</h4>
+      <div class="value" id="statTotal">0</div>
     </div>
     <div class="stat-card">
-      <h3>Concluídos</h3>
-      <p id="statDone">0</p>
+      <h4>Em Andamento</h4>
+      <div class="value" id="statInProgress" style="color: #2563eb;">0</div>
     </div>
     <div class="stat-card">
-      <h3>Progresso Geral</h3>
-      <p id="statPercent">0%</p>
-      <div class="progress-bar-bg"><div id="progressBar" class="progress-bar-fill"></div></div>
+      <h4>Concluídos</h4>
+      <div class="value" id="statDone" style="color: #16a34a;">0</div>
     </div>
   </div>
 
-  <div class="card">
-    <form id="taskForm" class="form-grid" onsubmit="addTask(event)">
-      <input type="text" id="taskInput" placeholder="Título da rotina ou projeto..." required>
-      <select id="typeSelect">
-        <option value="rotina">Rotina</option>
-        <option value="projeto">Projeto</option>
-      </select>
-      <select id="prioritySelect">
-        <option value="baixa">Baixa</option>
-        <option value="media" selected>Média</option>
-        <option value="alta">Alta</option>
-      </select>
-      <input type="date" id="dateInput">
-      <button type="submit" class="btn-primary">Adicionar</button>
-    </form>
-
-    <div class="filters">
-      <button class="filter-btn active" onclick="setFilter('all', this)">Todas</button>
-      <button class="filter-btn" onclick="setFilter('rotina', this)">Rotinas</button>
-      <button class="filter-btn" onclick="setFilter('projeto', this)">Projetos</button>
-      <button class="filter-btn" onclick="setFilter('done', this)">Concluídas</button>
+  <!-- Barra de Ações -->
+  <div class="top-bar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar por título ou descrição..." oninput="render()">
     </div>
+    <button class="btn btn-primary" onclick="openModal()">+ Novo Item</button>
+  </div>
 
-    <ul id="taskList"></ul>
+  <!-- Filtros -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
+    <button class="filter-btn" onclick="setFilter('projeto', this)">Projetos</button>
+    <button class="filter-btn" onclick="setFilter('rotina', this)">Rotinas</button>
+    <button class="filter-btn" onclick="setFilter('em_andamento', this)">Em Andamento</button>
+    <button class="filter-btn" onclick="setFilter('concluido', this)">Concluídos</button>
+  </div>
+
+  <!-- Container de Itens -->
+  <div class="cards-container" id="itemsList"></div>
+
+  <!-- Modal de Criação / Edição -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Criar Novo Item</h3>
+        <button style="background:none; border:none; font-size:20px; cursor:pointer;" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="itemForm" onsubmit="saveItem(event)">
+        <input type="hidden" id="itemId">
+        
+        <div class="form-group">
+          <label>Título *</label>
+          <input type="text" id="itemTitle" required placeholder="Ex: Lançar novo site ou Exercícios matinais">
+        </div>
+
+        <div class="form-group">
+          <label>Descrição / Anotações do Projeto</label>
+          <textarea id="itemDescription" placeholder="Detalhe os passos, links ou ideias importantes aqui..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="itemType">
+              <option value="projeto">Projeto</option>
+              <option value="rotina">Rotina</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status de Progresso</label>
+            <select id="itemStatus">
+              <option value="a_fazer">A Fazer</option>
+              <option value="em_andamento">Em Andamento</option>
+              <option value="concluido">Concluído</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prioridade</label>
+            <select id="itemPriority">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Data Limite / Prazo</label>
+            <input type="date" id="itemDate">
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Item</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
-    let tasks = JSON.parse(localStorage.getItem('my_advanced_planner')) || [];
+    let items = JSON.parse(localStorage.getItem('my_planner_v3')) || [];
     let currentFilter = 'all';
 
-    function saveData() {
-      localStorage.setItem('my_advanced_planner', JSON.stringify(tasks));
+    function saveToStorage() {
+      localStorage.setItem('my_planner_v3', JSON.stringify(items));
       updateStats();
       render();
     }
 
     function updateStats() {
-      const total = tasks.length;
-      const done = tasks.filter(t => t.done).length;
-      const percent = total > 0 ? Math.round((done / total) * 100) : 0;
-
-      document.getElementById('statTotal').innerText = total;
-      document.getElementById('statDone').innerText = done;
-      document.getElementById('statPercent').innerText = `${percent}%`;
-      document.getElementById('progressBar').style.width = `${percent}%`;
+      document.getElementById('statTotal').innerText = items.length;
+      document.getElementById('statInProgress').innerText = items.filter(i => i.status === 'em_andamento').length;
+      document.getElementById('statDone').innerText = items.filter(i => i.status === 'concluido').length;
     }
 
     function setFilter(filter, btn) {
@@ -118,76 +215,141 @@
       render();
     }
 
-    function addTask(e) {
+    function openModal(id = null) {
+      const modal = document.getElementById('modalOverlay');
+      const modalTitle = document.getElementById('modalTitle');
+      
+      if (id) {
+        modalTitle.innerText = "Editar Item / Descrição";
+        const item = items.find(i => i.id === id);
+        document.getElementById('itemId').value = item.id;
+        document.getElementById('itemTitle').value = item.title;
+        document.getElementById('itemDescription').value = item.description || '';
+        document.getElementById('itemType').value = item.type;
+        document.getElementById('itemStatus').value = item.status;
+        document.getElementById('itemPriority').value = item.priority;
+        document.getElementById('itemDate').value = item.date || '';
+      } else {
+        modalTitle.innerText = "Criar Novo Item";
+        document.getElementById('itemForm').reset();
+        document.getElementById('itemId').value = '';
+      }
+      
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    function saveItem(e) {
       e.preventDefault();
-      const input = document.getElementById('taskInput');
-      const type = document.getElementById('typeSelect').value;
-      const priority = document.getElementById('prioritySelect').value;
-      const date = document.getElementById('dateInput').value;
+      const id = document.getElementById('itemId').value;
+      const title = document.getElementById('itemTitle').value.trim();
+      const description = document.getElementById('itemDescription').value.trim();
+      const type = document.getElementById('itemType').value;
+      const status = document.getElementById('itemStatus').value;
+      const priority = document.getElementById('itemPriority').value;
+      const date = document.getElementById('itemDate').value;
 
-      tasks.push({
-        id: Date.now(),
-        text: input.value.trim(),
-        type,
-        priority,
-        date,
-        done: false
+      if (id) {
+        // Editar
+        items = items.map(item => item.id == id ? { ...item, title, description, type, status, priority, date } : item);
+      } else {
+        // Criar Novo
+        items.push({
+          id: Date.now(),
+          title,
+          description,
+          type,
+          status,
+          priority,
+          date
+        });
+      }
+
+      closeModal();
+      saveToStorage();
+    }
+
+    function deleteItem(id) {
+      if (confirm("Tem certeza de que deseja excluir este item?")) {
+        items = items.filter(i => i.id !== id);
+        saveToStorage();
+      }
+    }
+
+    function quickToggleStatus(id) {
+      items = items.map(i => {
+        if (i.id === id) {
+          const nextStatus = i.status === 'concluido' ? 'a_fazer' : 'concluido';
+          return { ...i, status: nextStatus };
+        }
+        return i;
       });
-
-      input.value = '';
-      document.getElementById('dateInput').value = '';
-      saveData();
-    }
-
-    function toggleTask(id) {
-      tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
-      saveData();
-    }
-
-    function deleteTask(id) {
-      tasks = tasks.filter(t => t.id !== id);
-      saveData();
+      saveToStorage();
     }
 
     function render() {
-      const list = document.getElementById('taskList');
+      const list = document.getElementById('itemsList');
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
       list.innerHTML = '';
 
-      const filteredTasks = tasks.filter(t => {
-        if (currentFilter === 'rotina') return t.type === 'rotina';
-        if (currentFilter === 'projeto') return t.type === 'projeto';
-        if (currentFilter === 'done') return t.done;
+      const filteredItems = items.filter(item => {
+        // Filtro por texto
+        const matchesSearch = item.title.toLowerCase().includes(searchQuery) || 
+                              (item.description && item.description.toLowerCase().includes(searchQuery));
+        if (!matchesSearch) return false;
+
+        // Filtro por categoria/status
+        if (currentFilter === 'projeto') return item.type === 'projeto';
+        if (currentFilter === 'rotina') return item.type === 'rotina';
+        if (currentFilter === 'em_andamento') return item.status === 'em_andamento';
+        if (currentFilter === 'concluido') return item.status === 'concluido';
         return true;
       });
 
-      if (filteredTasks.length === 0) {
-        list.innerHTML = '<li style="justify-content:center; color:#94a3b8;">Nenhum item para exibir.</li>';
+      if (filteredItems.length === 0) {
+        list.innerHTML = '<div class="empty-state">Nenhum projeto ou rotina encontrado.</div>';
         return;
       }
 
-      filteredTasks.forEach(task => {
-        const li = document.createElement('li');
-        li.className = task.done ? 'done' : '';
-        const formattedDate = task.date ? new Date(task.date + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+      filteredItems.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
 
-        li.innerHTML = `
-          <div class="task-left">
-            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id})">
+        const statusLabels = { a_fazer: 'A Fazer', em_andamento: 'Em Andamento', concluido: 'Concluído' };
+        const formattedDate = item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+
+        card.innerHTML = `
+          <div class="card-header">
             <div>
-              <div class="title" style="font-weight: 500;">${task.text}</div>
-              <div class="meta-tags">
-                <span class="badge badge-${task.type}">${task.type}</span>
-                <span class="badge badge-${task.priority}">${task.priority}</span>
-                ${formattedDate ? `<span class="task-date">📅 ${formattedDate}</span>` : ''}
-              </div>
+              <div class="card-title ${item.status === 'concluido' ? 'concluido' : ''}">${item.title}</div>
+            </div>
+            <input type="checkbox" ${item.status === 'concluido' ? 'checked' : ''} onchange="quickToggleStatus(${item.id})" title="Marcar/Desmarcar como concluído">
+          </div>
+
+          <div class="badges">
+            <span class="badge badge-${item.type}">${item.type}</span>
+            <span class="badge badge-${item.status}">${statusLabels[item.status]}</span>
+            <span class="badge badge-${item.priority}">${item.priority}</span>
+          </div>
+
+          ${item.description ? `<div class="card-description">${item.description}</div>` : ''}
+
+          <div class="card-footer">
+            <span class="card-date">${formattedDate ? '📅 Prazo: ' + formattedDate : ''}</span>
+            <div class="card-actions">
+              <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openModal(${item.id})">✏️ Editar</button>
+              <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="deleteItem(${item.id})">🗑️ Excluir</button>
             </div>
           </div>
-          <button class="btn-del" onclick="deleteTask(${task.id})">Excluir</button>
         `;
-        list.appendChild(li);
+        list.appendChild(card);
       });
     }
 
+    // Inicialização
     updateStats();
     render();
   </script>
