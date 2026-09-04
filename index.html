@@ -1,68 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>John von Neumann: O Gênio da Computação</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-        header {
-            text-align: center;
-            padding: 40px 0;
-            background-color: #2c3e50;
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-        h1 { margin: 0; }
-        .content-section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;}
-        ul { padding-left: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Rotinas e Projetos</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
+    body { background: #f1f5f9; color: #1e293b; padding: 24px; max-width: 700px; margin: 0 auto; }
+    h1 { margin-bottom: 16px; font-size: 1.5rem; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
+    input, select, button { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; }
+    input { flex: 1; }
+    button { background: #2563eb; color: white; border: none; font-weight: 600; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    ul { list-style: none; }
+    li { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+    li.done .task-text { text-decoration: line-through; opacity: 0.5; }
+    .task-info { display: flex; align-items: center; gap: 10px; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
+    .badge.rotina { background: #e0f2fe; color: #0369a1; }
+    .badge.projeto { background: #fef3c7; color: #b45309; }
+    .del-btn { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .del-btn:hover { background: #dc2626; }
+  </style>
 </head>
 <body>
-
-    <header>
-        <h1>John von Neumann</h1>
-        <p>Matemático, Físico e Pioneiro da Computação</p>
-    </header>
-
-    <div class="content-section">
-        <h2>Quem foi?</h2>
-        <p>John von Neumann (1903–1957) foi um matemático húngaro-americano que fez contribuições fundamentais para a matemática, física, economia e ciência da computação. Ele era conhecido por ter uma memória fotográfica e uma capacidade de cálculo mental que impressionava até outros gênios como Albert Einstein.</p>
+  <h1>Minhas Rotinas & Projetos</h1>
+  <div class="card">
+    <div class="input-group">
+      <input type="text" id="taskInput" placeholder="Nova rotina ou projeto...">
+      <select id="typeSelect">
+        <option value="rotina">Rotina</option>
+        <option value="projeto">Projeto</option>
+      </select>
+      <button onclick="addTask()">Adicionar</button>
     </div>
+    <ul id="taskList"></ul>
+  </div>
 
-    <div class="content-section">
-        <h2>A Arquitetura de von Neumann</h2>
-        <p>Quase todos os computadores, celulares e videogames que usamos hoje funcionam baseados em um modelo que ele descreveu em 1945, conhecido como <strong>Arquitetura de von Neumann</strong>. O conceito principal é revolucionário, mas simples:</p>
-        <ul>
-            <li>Os dados e os programas (instruções) ficam armazenados no mesmo espaço de memória.</li>
-            <li>A CPU (Processador) busca essas instruções uma a uma e as executa.</li>
-        </ul>
-    </div>
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('my_planner_data')) || [];
 
-    <div class="content-section">
-        <h2>Outras Contribuições</h2>
-        <ul>
-            <li><strong>Teoria dos Jogos:</strong> Ele foi um dos criadores desta área da matemática, usada hoje em economia, biologia e inteligência artificial.</li>
-            <li><strong>Projeto Manhattan:</strong> Trabalhou nos cálculos matemáticos complexos durante a Segunda Guerra Mundial.</li>
-            <li><strong>Mecânica Quântica:</strong> Ajudou a criar a estrutura matemática rigorosa para a física quântica.</li>
-        </ul>
-    </div>
+    function render() {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.className = task.done ? 'done' : '';
+        li.innerHTML = `
+          <div class="task-info">
+            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})">
+            <span class="task-text">${task.text}</span>
+            <span class="badge ${task.type}">${task.type}</span>
+          </div>
+          <button class="del-btn" onclick="deleteTask(${index})">Excluir</button>
+        `;
+        list.appendChild(li);
+      });
+      localStorage.setItem('my_planner_data', JSON.stringify(tasks));
+    }
 
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      const type = document.getElementById('typeSelect').value;
+      if (!input.value.trim()) return;
+      tasks.push({ text: input.value, type: type, done: false });
+      input.value = '';
+      render();
+    }
+
+    function toggleTask(index) {
+      tasks[index].done = !tasks[index].done;
+      render();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      render();
+    }
+
+    render();
+  </script>
 </body>
 </html>
