@@ -1,254 +1,294 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Organizador de Aulas e Dicionário</title>
-  <style>
-    /* ESTILOS GERAIS DA PÁGINA */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .secao {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 25px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    /* GRADE DO CALENDÁRIO */
-    .grid-dias {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .dia-card {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 10px;
-      min-height: 90px;
-      background: #fafafa;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .dia-card:hover {
-      background: #eef5ff;
-    }
-
-    .dia-titulo {
-      font-weight: bold;
-      color: #007bff;
-      margin-bottom: 5px;
-    }
-
-    .aula-resumo {
-      font-size: 0.85em;
-      color: #555;
-      word-wrap: break-word;
-    }
-
-    /* FORMULÁRIO DO DICIONÁRIO */
-    .form-dicionario {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-    }
-
-    input[type="text"], textarea {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .form-dicionario input {
-      flex: 1;
-      min-width: 150px;
-    }
-
-    button {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #218838;
-    }
-
-    /* LISTA DO DICIONÁRIO */
-    .item-dicionario {
-      border-left: 4px solid #17a2b8;
-      background: #f8f9fa;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 0 4px 4px 0;
-    }
-
-    /* MODAL (JANELA FLUTUANTE) DA AULA */
-    .modal-fundo {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal-conteudo {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      width: 400px;
-      max-width: 90%;
-    }
-  </style>
+  <title>Central de Organização | Projetos, Rotinas & Diário</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-  <div class="container">
-    
-    <!-- 1. SEÇÃO DO CALENDÁRIO / AULAS -->
-    <div class="secao">
-      <h2>📅 Calendário de Aulas e Tarefas</h2>
-      <p>Clique em um dia para abrir e adicionar detalhes do que aprendeu.</p>
-      
-      <div class="grid-dias" id="gridCalendario">
-        <!-- Os dias serão inseridos via JavaScript -->
+  <!-- SIDEBAR NAVEGAÇÃO -->
+  <aside>
+    <div>
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h2>Central Personal</h2>
+          <p>Organizador de Vida</p>
+        </div>
       </div>
+      <nav class="nav-list">
+        <button class="nav-btn active" onclick="switchTab('dashboard', this)">
+          <span>📊</span> Visão Geral
+        </button>
+        <button class="nav-btn" onclick="switchTab('projetos', this)">
+          <span>📁</span> Projetos & Arquivos
+        </button>
+        <button class="nav-btn" onclick="switchTab('horarios', this)">
+          <span>📚</span> Horário de Aulas
+        </button>
+        <button class="nav-btn" onclick="switchTab('compromissos', this)">
+          <span>📅</span> Agenda & Tarefas
+        </button>
+        <button class="nav-btn" onclick="switchTab('diario', this)">
+          <span>📖</span> Diário Pessoal
+        </button>
+      </nav>
     </div>
-
-    <!-- 2. SEÇÃO DO DICIONÁRIO -->
-    <div class="secao">
-      <h2>📖 Meu Dicionário de Conceitos</h2>
-      <div class="form-dicionario">
-        <input type="text" id="termoInput" placeholder="Palavra / Termo (ex: Fotossíntese)">
-        <input type="text" id="defInput" placeholder="Definição ou significado">
-        <button onclick="adicionarTermo()">Adicionar</button>
+    <div class="sidebar-footer">
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <span id="themeLabel">🌙 Modo Escuro</span>
+        <div class="theme-switch"></div>
       </div>
-      <div id="listaDicionario">
-        <!-- Termos salvos aparecem aqui -->
+      <button class="btn btn-secondary btn-sm" onclick="exportData()" style="width: 100%;">
+        💾 Exportar Backup
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main>
+    <!-- TOP HEADER -->
+    <header class="top-header">
+      <div class="header-info">
+        <h1 id="pageTitle">Visão Geral</h1>
+        <p id="currentDateDisplay">Carregando data...</p>
       </div>
-    </div>
+      <div class="header-actions">
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearch" placeholder="Pesquisar em tudo..." oninput="handleGlobalSearch()">
+        </div>
+      </div>
+    </header>
 
-  </div>
+    <!-- TAB 1: DASHBOARD / VISÃO GERAL -->
+    <section id="dashboard" class="tab-content active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">📁</div>
+          <div>
+            <div class="stat-value" id="dashProjCount">0</div>
+            <div class="stat-label">Projetos Ativos</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--warning-light); color: var(--warning);">⏳</div>
+          <div>
+            <div class="stat-value" id="dashPendingCount">0</div>
+            <div class="stat-label">Tarefas Pendentes</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--info-light); color: var(--info);">📚</div>
+          <div>
+            <div class="stat-value" id="dashClassCount">0</div>
+            <div class="stat-label">Aulas na Semana</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--success-light); color: var(--success);">📖</div>
+          <div>
+            <div class="stat-value" id="dashJournalCount">0</div>
+            <div class="stat-label">Registros no Diário</div>
+          </div>
+        </div>
+      </div>
 
-  <!-- JANELA POP-UP PARA EDITAR DETALHES DO DIA SELECIONADO -->
-  <div class="modal-fundo" id="modalAula">
-    <div class="modal-conteudo">
-      <h3 id="modalTitulo">Editar Dia</h3>
-      <label><strong>Descrição da Aula / O que aprendi:</strong></label><br><br>
-      <textarea id="textoAnotacao" rows="6" placeholder="Escreva as anotações da aula ou tarefas aqui..."></textarea><br><br>
-      <button onclick="salvarAnotacao()">Salvar</button>
-      <button style="background: #dc3545;" onclick="fecharModal()">Cancelar</button>
-    </div>
-  </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+        <div class="card">
+          <div class="card-title-bar">
+            <h3>📅 Próximos Compromissos</h3>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('compromissos', document.querySelectorAll('.nav-btn')[3])">Ver Todos</button>
+          </div>
+          <div id="dashUpcomingEvents">
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Nenhum compromisso próximo.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title-bar">
+            <h3>🚀 Progresso de Projetos</h3>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('projetos', document.querySelectorAll('.nav-btn')[1])">Ver Todos</button>
+          </div>
+          <div id="dashProjectsSummary">
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Nenhum projeto cadastrado.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <script>
-    // Lista com os dias da semana para o calendário
-    const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
-    
-    // Objeto que armazena os blocos de texto/anotações de cada dia
-    let dadosAulas = {
-      "Segunda": "",
-      "Terça": "",
-      "Quarta": "",
-      "Quinta": "",
-      "Sexta": "",
-      "Sábado": "",
-      "Domingo": ""
-    };
+    <!-- TAB 2: PROJETOS E ARQUIVOS -->
+    <section id="projetos" class="tab-content">
+      <div class="card">
+        <div class="card-title-bar">
+          <h3>➕ Novo Projeto / Arquivo de Trabalho</h3>
+        </div>
+        <form onsubmit="addProject(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nome do Projeto / Pasta</label>
+              <input type="text" id="projTitle" placeholder="Ex: TCC, Redesenho do Site, Compra de Carro" required>
+            </div>
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="projCategory">
+                <option value="Trabalho">Trabalho</option>
+                <option value="Estudos">Estudos</option>
+                <option value="Pessoal">Pessoal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Data Limite / Prazo</label>
+              <input type="date" id="projDeadline">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Anotações, Descrição e Links de Referência</label>
+            <textarea id="projDescription" rows="3" placeholder="Escreva ideias, caminhos de arquivos, links de documentos ou especificações..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Criar Projeto</button>
+        </form>
+      </div>
+      <div class="projects-grid" id="projectsGrid"></div>
+    </section>
 
-    let diaSelecionado = "";
+    <!-- TAB 3: HORÁRIO DE AULAS -->
+    <section id="horarios" class="tab-content">
+      <div class="card">
+        <div class="card-title-bar">
+          <h3>➕ Cadastrar Nova Aula / Disciplina</h3>
+        </div>
+        <form onsubmit="addClass(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Dia da Semana</label>
+              <select id="classDay">
+                <option value="Segunda">Segunda-feira</option>
+                <option value="Terça">Terça-feira</option>
+                <option value="Quarta">Quarta-feira</option>
+                <option value="Quinta">Quinta-feira</option>
+                <option value="Sexta">Sexta-feira</option>
+                <option value="Sábado">Sábado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Horário</label>
+              <input type="text" id="classTime" placeholder="Ex: 08:00 - 09:40" required>
+            </div>
+            <div class="form-group">
+              <label>Nome da Disciplina</label>
+              <input type="text" id="className" placeholder="Ex: Cálculo I, História" required>
+            </div>
+            <div class="form-group">
+              <label>Sala / Professor / Obs</label>
+              <input type="text" id="classLocation" placeholder="Ex: Sala 204 - Prof. Carlos">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Adicionar Disciplina</button>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-title-bar">
+          <h3>📚 Grade Semanal de Aulas</h3>
+        </div>
+        <div class="timetable-wrapper">
+          <table class="timetable">
+            <thead>
+              <tr>
+                <th>Horário / Dia</th>
+                <th>Segunda</th>
+                <th>Terça</th>
+                <th>Quarta</th>
+                <th>Quinta</th>
+                <th>Sexta</th>
+                <th>Sábado</th>
+              </tr>
+            </thead>
+            <tbody id="timetableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-    // Função que desenha os cartões do calendário na tela
-    function renderizarCalendario() {
-      const container = document.getElementById("gridCalendario");
-      container.innerHTML = ""; // Limpa o conteúdo atual
+    <!-- TAB 4: COMPROMISSOS & AGENDA -->
+    <section id="compromissos" class="tab-content">
+      <div class="card">
+        <div class="card-title-bar">
+          <h3>➕ Agendar Novo Compromisso / Trabalho</h3>
+        </div>
+        <form onsubmit="addEvent(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Título do Compromisso</label>
+              <input type="text" id="eventTitle" placeholder="Ex: Entrega do Artigo, Reunião de Equipe" required>
+            </div>
+            <div class="form-group">
+              <label>Data</label>
+              <input type="date" id="eventDate" required>
+            </div>
+            <div class="form-group">
+              <label>Prioridade</label>
+              <select id="eventPriority">
+                <option value="Alta">Alta 🔴</option>
+                <option value="Média" selected>Média 🟡</option>
+                <option value="Baixa">Baixa 🟢</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="eventType">
+                <option value="Trabalho">Trabalho</option>
+                <option value="Prova">Prova/Avaliação</option>
+                <option value="Evento">Evento/Reunião</option>
+                <option value="Tarefa">Tarefa Pessoal</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Agendar Compromisso</button>
+        </form>
+      </div>
+      <div id="eventsContainer"></div>
+    </section>
 
-      diasSemana.forEach(dia => {
-        const card = document.createElement("div");
-        card.className = "dia-card";
-        card.onclick = () => abrirModal(dia);
+    <!-- TAB 5: DIÁRIO PESSOAL -->
+    <section id="diario" class="tab-content">
+      <div class="card">
+        <div class="card-title-bar">
+          <h3>✍️ Novo Registro no Diário</h3>
+        </div>
+        <form onsubmit="addJournalEntry(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Título / Tema do Dia</label>
+              <input type="text" id="journalTitle" placeholder="Ex: Reflexões sobre o progresso do projeto" required>
+            </div>
+            <div class="form-group">
+              <label>Como você se sente hoje?</label>
+              <select id="journalMood">
+                <option value="😃 Excelente">😃 Excelente</option>
+                <option value="🙂 Bom" selected>🙂 Bom</option>
+                <option value="😐 Neutro">😐 Neutro</option>
+                <option value="🙁 Cansado / Difícil">🙁 Cansado / Difícil</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Escreva seus pensamentos...</label>
+            <textarea id="journalText" rows="5" placeholder="Como foi seu dia? Quais foram as vitórias, aprendizados ou reflexões?" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Guardar Registro</button>
+        </form>
+      </div>
+      <div id="journalEntriesList"></div>
+    </section>
+  </main>
 
-        // Pega os primeiros 25 caracteres para exibir uma prévia no cartão
-        const textoExistente = dadosAulas[dia];
-        const resumo = textoExistente ? textoExistente.substring(0, 25) + "..." : "<i>Clique para editar</i>";
-
-        card.innerHTML = `
-          <div class="dia-titulo">${dia}</div>
-          <div class="aula-resumo">${resumo}</div>
-        `;
-
-        container.appendChild(card);
-      });
-    }
-
-    // Abre a janela flutuante e carrega o texto salvo do dia selecionado
-    function abrirModal(dia) {
-      diaSelecionado = dia;
-      document.getElementById("modalTitulo").innerText = "Aula / Tarefas: " + dia;
-      document.getElementById("textoAnotacao").value = dadosAulas[dia] || "";
-      document.getElementById("modalAula").style.display = "flex";
-    }
-
-    // Fecha a janela flutuante
-    function fecharModal() {
-      document.getElementById("modalAula").style.display = "none";
-    }
-
-    // Salva o texto digitado no objeto e atualiza a tela
-    function salvarAnotacao() {
-      const conteudo = document.getElementById("textoAnotacao").value;
-      dadosAulas[diaSelecionado] = conteudo;
-      fecharModal();
-      renderizarCalendario();
-    }
-
-    // Adiciona uma nova palavra e definição na lista do dicionário
-    function adicionarTermo() {
-      const termo = document.getElementById("termoInput").value.trim();
-      const definicao = document.getElementById("defInput").value.trim();
-
-      if (!termo || !definicao) {
-        alert("Preencha o termo e a definição!");
-        return;
-      }
-
-      const lista = document.getElementById("listaDicionario");
-      const item = document.createElement("div");
-      item.className = "item-dicionario";
-      item.innerHTML = `<strong>${termo}:</strong> ${definicao}`;
-
-      lista.appendChild(item);
-
-      // Reseta os campos após adicionar
-      document.getElementById("termoInput").value = "";
-      document.getElementById("defInput").value = "";
-    }
-
-    // Inicializa a exibição do calendário assim que o script carrega
-    renderizarCalendario();
-  </script>
-
+  <script src="script.js"></script>
 </body>
 </html>
